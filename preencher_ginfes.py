@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import simpledialog
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
@@ -121,25 +122,36 @@ def main():
 )
     item_servico.click()
 
-    time.sleep(10)
+    time.sleep(2)
+
+# Dá TAB para sair do campo código de serviço
+    input_combo.send_keys(Keys.TAB)
+    time.sleep(1)
+
+# Agora já estamos no campo de alíquota
+    driver.switch_to.active_element.send_keys(aliquota)
+
+# Dá TAB para sair do campo alíquota e validar
+    driver.switch_to.active_element.send_keys(Keys.TAB)
+    time.sleep(1)
 
     # ---------------- Descrição e Valor ----------------
-# ---------------- Preencher Descrição ----------------
-    textarea_field = WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.XPATH, "//textarea[@class='x-form-textarea x-form-field']"))
+    # Digita a descrição no campo atual (já selecionado pelo TAB)
+    driver.switch_to.active_element.send_keys(descricao)
+
+    for _ in range(4):
+        driver.switch_to.active_element.send_keys(Keys.TAB)
+        time.sleep(0.5)  # pequeno intervalo para o navegador acompanhar
+    
+    driver.switch_to.active_element.send_keys(dados['valor_servico'])
+
+    # Localiza e clica no botão "Próximo Passo"
+    botao_proximo = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, "//button[contains(@class,'x-btn-text') and contains(text(),'Próximo Passo >> ')]"))
 )
-    textarea_field.clear()
-    textarea_field.send_keys(descricao)
+    botao_proximo.click()
 
-    preencher_por_label(driver, "Valor do Serviço:", dados['valor_servico'])
-    print("✅ Valor preenchidos")
-
-    # ---------------- Finaliza e envia ----------------
-    clicar_com_retry(driver, By.XPATH, "//button[contains(text(),'Próximo Passo')]")
-    print("✅ Formulário preenchido com sucesso (verifique antes de enviar).")
-
-
-
+    input("Pressione ENTER para encerrar...")
 # ---------------- Execução ----------------
 if __name__ == "__main__":
     main()
